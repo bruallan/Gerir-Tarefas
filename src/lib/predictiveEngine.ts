@@ -29,6 +29,7 @@ export const DIFFICULTY_BASE_DAYS: Record<TaskDifficulty, number> = {
 };
 
 export const HOURS_PER_BUSINESS_DAY = 8;
+export const DETERMINISTIC_FALLBACK_DATE = new Date(2026, 10, 16);
 
 export function getEffortForDifficulty(difficulty: TaskDifficulty): number {
   return Number((difficulty * 0.6).toFixed(2));
@@ -37,10 +38,13 @@ export function getEffortForDifficulty(difficulty: TaskDifficulty): number {
 /**
  * Converte string YYYY-MM-DD ou ISO para Date no início do dia local (00:00:00)
  */
-export function parseLocalDay(dateStr: string): Date {
+export function parseLocalDay(dateStr?: string): Date {
   if (!dateStr) {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return new Date(
+      DETERMINISTIC_FALLBACK_DATE.getFullYear(),
+      DETERMINISTIC_FALLBACK_DATE.getMonth(),
+      DETERMINISTIC_FALLBACK_DATE.getDate()
+    );
   }
   const clean = dateStr.split('T')[0];
   const [year, month, day] = clean.split('-').map(Number);
@@ -70,7 +74,7 @@ export function isBusinessDay(date: Date): boolean {
  */
 export function calculateAvailableBusinessDays(
   dueDateStr: string,
-  referenceDate: Date = new Date()
+  referenceDate: Date = DETERMINISTIC_FALLBACK_DATE
 ): { availableBusinessDays: number; calendarDaysUntilDue: number; isOverdue: boolean } {
   const today = new Date(
     referenceDate.getFullYear(),
@@ -122,7 +126,7 @@ export function calculateAvailableBusinessDays(
  */
 export function calculatePredictiveMetrics(
   task: Pick<Task, 'difficulty' | 'progress' | 'dueDate' | 'status'>,
-  referenceDate: Date = new Date()
+  referenceDate: Date = DETERMINISTIC_FALLBACK_DATE
 ): PredictiveMetrics {
   const totalEffortDays = getEffortForDifficulty(task.difficulty);
   const totalEffortHours = Number((totalEffortDays * HOURS_PER_BUSINESS_DAY).toFixed(1));
@@ -247,7 +251,7 @@ export function calculatePredictiveMetrics(
  */
 export function getMostCriticalRisk(
   tasks: Task[],
-  referenceDate: Date = new Date()
+  referenceDate: Date = DETERMINISTIC_FALLBACK_DATE
 ): RiskColor | null {
   if (!tasks.length) return null;
 
@@ -288,7 +292,7 @@ export function generateSmartSchedule(
   clients: Client[],
   projects: Project[],
   dailyCapacityDays: number = 1.0, // Padrão: 1 dia útil (8h)
-  referenceDate: Date = new Date()
+  referenceDate: Date = DETERMINISTIC_FALLBACK_DATE
 ): SmartScheduleItem[] {
   const productMap = new Map(products.map((p) => [p.id, p.name]));
   const clientMap = new Map(clients.map((c) => [c.id, c.name]));

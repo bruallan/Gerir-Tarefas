@@ -37,17 +37,19 @@ import {
 } from 'lucide-react';
 
 const STORAGE_KEY = 'chrono_ops_predictive_tasks_v1';
+const INITIAL_STATIC_DATE = '2026-11-16';
 
 export function PredictiveTaskSystem() {
-  const [referenceDateStr, setReferenceDateStr] = useState<string>(() =>
-    formatDateYYYYMMDD(new Date())
-  );
+  const [referenceDateStr, setReferenceDateStr] = useState<string>(INITIAL_STATIC_DATE);
   const referenceDate = useMemo(
     () => parseLocalDay(referenceDateStr),
     [referenceDateStr]
   );
 
-  const initialSeed = useMemo(() => createInitialSeedData(new Date()), []);
+  const initialSeed = useMemo(
+    () => createInitialSeedData(parseLocalDay(INITIAL_STATIC_DATE)),
+    []
+  );
 
   const [products, setProducts] = useState<Product[]>(initialSeed.products);
   const [clients, setClients] = useState<Client[]>(initialSeed.clients);
@@ -75,9 +77,13 @@ export function PredictiveTaskSystem() {
     'PRODUTO' | 'CLIENTE' | 'PROJETO' | null
   >(null);
 
-  // Carrega persistência local
+  // Carrega persistência local e inicializa data do cliente no mount
   useEffect(() => {
     try {
+      const todayStr = formatDateYYYYMMDD(new Date());
+      setReferenceDateStr((prev) =>
+        prev === INITIAL_STATIC_DATE ? todayStr : prev
+      );
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);

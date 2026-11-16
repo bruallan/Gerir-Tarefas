@@ -1,5 +1,7 @@
 import { Client, Product, Project, Task } from '@/types/domain';
-import { formatDateYYYYMMDD } from '@/lib/predictiveEngine';
+import { formatDateYYYYMMDD, parseLocalDay } from '@/lib/predictiveEngine';
+
+const DEFAULT_SEED_DATE = parseLocalDay('2026-11-16');
 
 function offsetDays(base: Date, days: number): string {
   const d = new Date(base.getFullYear(), base.getMonth(), base.getDate());
@@ -20,7 +22,7 @@ function offsetISO(base: Date, days: number, hours: number = 10): string {
   return d.toISOString();
 }
 
-export function createInitialSeedData(referenceDate: Date = new Date()): {
+export function createInitialSeedData(referenceDate: Date = DEFAULT_SEED_DATE): {
   products: Product[];
   clients: Client[];
   projects: Project[];
